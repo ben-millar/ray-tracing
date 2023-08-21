@@ -8,25 +8,26 @@
 class Camera
 {
 public:
-    double aspectRatio = 16.0 / 9.0;
-    int imageWidth = 400;
+    double aspectRatio  = 16.0 / 9.0;   // Ratio of image width over height
+    int imageWidth      = 400;          // Rendered image width in pixels
+    int samplesPerPixel = 10;           // Count of random samples for each pixel
 
-    void render(const Surface& _world, std::ostream& _target) {
+    void render(const Surface& t_world, std::ostream& t_target) {
         initialize();
 
-        _target << "P3\n" << imageWidth << ' ' << m_imageHeight << "\n255\n";
+        t_target << "P3\n" << imageWidth << ' ' << m_imageHeight << "\n255\n";
 
         for (int j = 0; j < m_imageHeight; ++j)
         {
             std::clog << "\rScanlines remaining: " << (m_imageHeight - j) << ' ' << std::flush;
             for (int i = 0; i < imageWidth; ++i)
             {
-                auto pixel_center = m_pixel00_loc + (i * m_pixel_delta_u) + (j * m_pixel_delta_v);
-                auto ray_direction = pixel_center - m_center;
-                Ray r(m_center, ray_direction);
-
-                Color pixel_color = rayColor(r, _world);
-                writeColor(_target, pixel_color);
+                Color pixelColor(0, 0, 0);
+                for (int sample = 0; sample < samplesPerPixel; ++sample) {
+                    Ray r = getRay(i, j);
+                    pixelColor += rayColor(r, t_world);
+                }
+                writeColor(t_target, pixelColor, samplesPerPixel);
             }
         }
 
@@ -61,6 +62,24 @@ private:
         auto viewport_upper_left = camera_center
             - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
         m_pixel00_loc = viewport_upper_left + 0.5 * (m_pixel_delta_u + m_pixel_delta_v);
+    }
+
+    Ray getRay(int i, int j) const {
+        // Get a randomly sampled camera ray for the pixel at i, j
+        auto pixelCenter = m_pixel00_loc + (i * m_pixel_delta_u) + (j * m_pixel_delta_v);
+        auto sample = pixelCenter + pixelSampleSquare();
+
+        auto origin = m_center;
+        auto direction = sample - origin;
+
+        return Ray(origin, direction);
+    }
+
+    Vec3 pixelSampleSquare() const {
+        // Returns a random point in the 3x3 square surrounnding a pixrl at the origin
+        auto px = -0.5 + random();
+        auto py = -0.5 + random();
+        return (px * m_pixel_delta_u) + (py * m_pixel_delta_v);
     }
 
     Color rayColor(const Ray& t_r, const Surface& t_world) {

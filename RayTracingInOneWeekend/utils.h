@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cmath>
+#include <random>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 
@@ -13,6 +14,12 @@ constexpr double pi = 3.1415926535897932385;
 
 inline double deg2rad(double degrees) {
 	return degrees * pi / 180.0;
+}
+
+inline double random(double t_min = 0.0,double t_max = 1.0) {
+	static std::uniform_real_distribution<double> distribution(t_min, t_max);
+	static std::mt19937_64 generator;
+	return distribution(generator);
 }
 
 #include "interval.h"

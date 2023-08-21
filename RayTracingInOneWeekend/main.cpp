@@ -13,15 +13,16 @@ int main() {
     world.add(make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5));
     world.add(make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0));
 
-    Camera cam;
+    Camera camera;
 
-    cam.aspectRatio = 16.0 / 9.0;
-    cam.imageWidth = 400;
+    camera.aspectRatio = 16.0 / 9.0;
+    camera.imageWidth = 400;
+    camera.samplesPerPixel = 100;
 
     std::ofstream file;
     file.open("image.ppm");
 
-    cam.render(world, file);
+    camera.render(world, file);
 
     file.close();
 
